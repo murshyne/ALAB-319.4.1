@@ -1,11 +1,13 @@
 // Imports
 import express from 'express';
 import gradesCTL from '../controllers/gradesController.mjs';
+import db from "../db/conn.mjs";
+import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
 // Get grades by ID
-router.route('/:id').get(gradesCTL.getSingleGrade);
+// router.route('/:id').get(gradesCTL.getSingleGrade);
 
 // Get student grades by studentid
 router.get('/student/:id', gradesCTL.getStudentGrades)
@@ -15,7 +17,6 @@ router.get('/class/:id', gradesCTL.getClassGrades)
 
 // Add new grade too
 router.post('/', gradesCTL.createGrade)
-
 
 
 export default router;

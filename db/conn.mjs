@@ -8,19 +8,23 @@ const connectionString = process.env.atlasURI || "";
 
 const client = new MongoClient(connectionString);
 
-let db; // Declare db variable
+// Declare db variable
+let db; 
 
-(async () => {
+const connectToDatabase = async () => {
   try {
-    // Try to connect to client
-    const conn = await client.connect(); // Connect and assign to conn
+    // connect to client
+    const conn = await client.connect();
     console.log(`MongoDB is connected`);
 
-    db = conn.db("sample_training"); // Now set db inside the try block
-    console.log("Database object:", db); // Log the db object for confirmation
+       db = conn.db("sample_training");
+
+    // Object confirmation
+    // Console.log("Database object:", db);
   } catch (err) {
     console.error("Connection error:", err);
   }
-})();
+};
 
-export default db; // Export db after the connection attempt
+
+export default db; 
