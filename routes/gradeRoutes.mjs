@@ -1,22 +1,86 @@
 // Imports
-import express from 'express';
-import gradesCTL from '../controllers/gradesController.mjs';
+import express from "express";
+import gradesCTL from "../controllers/gradesController.mjs";
 import db from "../db/conn.mjs";
-import { ObjectId } from "mongodb";
+// import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
-// Get grades by ID
-// router.route('/:id').get(gradesCTL.getSingleGrade);
+// Aggregation for overall stats
+router.get("/stats", async (req, res) => {
+  try {
+    const result = await db
+      .collection("grades")
+      .aggregate([
+        {
+          $group: {
+            _id: null,
+            totalLearners: { $sum: 1 },
+            above70: {
+              $sum: {
+                $cond: [{ $gt: ["$weightedAverage", 70] }, 1, 0],
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            totalLearners: 1,
+            above70: 1,
+            percentageAbove70: {
+              $multiply: [{ $divide: ["$above70", "$totalLearners"] }, 100],
+            },
+          },
+        },
+      ])
+      .toArray();
 
-// Get student grades by studentid
-router.get('/student/:id', gradesCTL.getStudentGrades)
+    res.json(
+      result[0] || { totalLearners: 0, above70: 0, percentageAbove70: 0 }
+    );
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
-// Get Class grades by classID
-router.get('/class/:id', gradesCTL.getClassGrades)
+// Aggregation for stats by class_id
+router.get("/stats/:id", async (req, res) => {
+  const classId = parseInt(req.params.id, 10);
 
-// Add new grade too
-router.post('/', gradesCTL.createGrade)
+  try {
+    const result = await db
+      .collection("grades")
+      .aggregate([
+        { $match: { class_id: classId } },
+        {
+          $group: {
+            _id: null,
+            totalLearners: { $sum: 1 },
+            above70: {
+              $sum: {
+                $cond: [{ $gt: ["$weightedAverage", 70] }, 1, 0],
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            totalLearners: 1,
+            above70: 1,
+            percentageAbove70: {
+              $multiply: [{ $divide: ["$above70", "$totalLearners"] }, 100],
+            },
+          },
+        },
+      ])
+      .toArray();
 
+    res.json(
+      result[0] || { totalLearners: 0, above70: 0, percentageAbove70: 0 }
+    );
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
 
 export default router;

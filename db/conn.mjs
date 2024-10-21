@@ -9,22 +9,29 @@ const connectionString = process.env.atlasURI || "";
 const client = new MongoClient(connectionString);
 
 // Declare db variable
-let db; 
+let db;
 
 const connectToDatabase = async () => {
   try {
-    // connect to client
-    const conn = await client.connect();
-    console.log(`MongoDB is connected`);
-
-       db = conn.db("sample_training");
-
-    // Object confirmation
-    // Console.log("Database object:", db);
-  } catch (err) {
-    console.error("Connection error:", err);
+    await client.connect();
+    db = client.db("your_database_name"); // Replace with your database name
+    console.log("Connected to database");
+    await createIndexes(); // Call index creation after connecting
+  } catch (error) {
+    console.error("Database connection error:", error);
   }
 };
 
+const createIndexes = async () => {
+  try {
+    await db.collection("grades").createIndex({ class_id: 1 });
+    await db.collection("grades").createIndex({ learner_id: 1 });
+    await db.collection("grades").createIndex({ learner_id: 1, class_id: 1 });
+    console.log("Indexes created");
+  } catch (err) {
+    console.error("Error creating indexes:", err);
+  }
+};
 
-export default db; 
+export { connectToDatabase };
+export default db;

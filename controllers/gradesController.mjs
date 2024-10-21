@@ -1,66 +1,26 @@
-import db from '../db/conn.mjs';
-import { ObjectId } from 'mongodb';
+import db from "../db/conn.mjs";
+import { ObjectId } from "mongodb";
 
 // Get single grade entry by id
 async function getSingleGrade(req, res) {
   try {
+    if (!db) {
+      return res.status(500).json({ msg: "Database not connected" });
+    }
+
     let query = { _id: new ObjectId(req.params.id) };
+    let result = await db.collection("grades").findOne(query);
 
-    let collection = await db.collection('grades');
-
-    let result = await collection.findOne(query);
-
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
-  }
-}
-
-// Get grades by student id
-async function getStudentGrades(req, res) {
-  try {
-    let query = { student_id: Number(req.params.id) };
-
-    let collection = await db.collection('grades');
-
-    let results = await collection.find(query).toArray();
-
-    res.json(results);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
-  }
-}
-
-// Get grades by classID
-async function getClassGrades(req, res) {
-  try {
-    let query = { class_id: Number(req.params.id) };
-
-    let collection = await db.collection('grades');
-
-    let results = await collection.find(query).toArray();
-
-    res.json(results);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
-  }
-}
-
-// Create new grades in DB
-async function createGrade(req, res) {
-  try {
-    let collection = await db.collection('grades');
-
-    let result = await collection.insertOne(req.body);
+    if (!result) {
+      return res.status(404).json({ msg: "Grade not found" });
+    }
 
     res.json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: 'Server Error' });
+    res.status(500).json({ msg: "Server Error" });
   }
 }
 
-export default { getSingleGrade, getClassGrades, getStudentGrades, createGrade };
+// Export your functions as before
+export default getSingleGrade;
